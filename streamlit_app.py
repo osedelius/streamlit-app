@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import json
 import io
+import xml.etree.ElementTree as ET
 
 # Custom CSS for simpler branding
 st.markdown(
@@ -72,6 +73,26 @@ def load_mapping_template(template_file):
         return json.load(template_file)
     return {}
 
+# Function to parse XML file using ElementTree
+def parse_xml(file):
+    try:
+        tree = ET.parse(file)
+        root = tree.getroot()
+        data = []
+
+        # Iterate through elements and build a dictionary for each element
+        for child in root:
+            row = {elem.tag: elem.text for elem in child}
+            data.append(row)
+        
+        # Convert to DataFrame
+        df = pd.DataFrame(data)
+        return df
+
+    except ET.ParseError as e:
+        st.error(f"Error parsing XML file: {e}")
+        return pd.DataFrame()
+
 # Sidebar for template options
 with st.sidebar:
     st.header("Template Options")
@@ -96,7 +117,12 @@ if uploaded_file is not None:
         elif uploaded_file.name.endswith('.xlsx'):
             df = pd.read_excel(uploaded_file)
         elif uploaded_file.name.endswith('.xml'):
-            df = pd.read_xml(uploaded_file)
+            try:
+                # Try using pandas to read the XML
+                df = pd.read_xml(uploaded_file)
+            except Exception:
+                # Fallback to manual parsing using ElementTree
+                df = parse_xml(uploaded_file)
 
         st.write("**File processed. Displaying preview...**")
 
