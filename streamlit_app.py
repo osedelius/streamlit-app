@@ -148,7 +148,7 @@ if uploaded_file is not None:
                 st.dataframe(df.head())  # Display the first few rows of the file
 
         # Pre-defined output column names
-        output_columns = ["Orgnumber", "Orgname", "First name", "Last name", "Pensionable Salary", "Pensionable Salary Date", "Employment date"]
+        output_columns = ["ClientID", "Org.namn", "Orgnr", "Personnr", "AnställningsID", "Efternamn", "Förnamn", "E-postadress", "Utdelningsadress", "Postnr", "c/o-adress", "Land", "Telefonnr", "Mobilnr", "Pensionsmedförande lön", "Datum PMF-lön", "Kontant utbetald bruttolön", "Datum KUB-lön", "Lön/månad", "Alternativ årslön", "Datum alternativ årslön", "Anställningsdatum", "Anst.datum koncern", "Slutdatum anställning", "Avgors", "Frånvarotyp", "Frånvarodatum", "Antal dagar frånvaro", "Sjukkod", "Sjukdatum", "Sjuk antal dagar", "Tjänstepensionskod", "Anställningsgrad", "Enhetsnummer", "Kostnadsställe", "Anställningstyp", "Kategori", "Mpremie", "Arbetsoförmåga", "Frånvarodatum"]
         mapped_columns = {}
 
         # Center the "Map Columns to Desired Format" header
