@@ -157,17 +157,19 @@ if uploaded_file is not None:
         # Dynamic layout for mapping columns
         col_mapping_layout = st.columns(2)
         total_columns = len(output_columns)
-        
-        # Create select boxes dynamically
-        for i, output_col in enumerate(output_columns):
-            column_number = i % 10
-            col = col_mapping_layout[column_number // 5]  # Dynamically choose left or right side to avoid scrolling
-            with col:
-                mapped_columns[output_col] = st.selectbox(
-                    f"Map to '{output_col}'",
-                    options=[None] + df.columns.tolist(),
-                    index=df.columns.tolist().index(column_mapping_template.get(output_col, None)) + 1 if column_mapping_template.get(output_col) in df.columns else 0
-                )
+
+# Create select boxes dynamically
+for i, output_col in enumerate(output_columns):
+    column_number = i % 10
+    col = col_mapping_layout[column_number // 5]  # Dynamically choose left or right side to avoid scrolling
+    with col:
+        # Assign a unique key for each select box
+        mapped_columns[output_col] = st.selectbox(
+            f"Map to '{output_col}'",
+            options=[None] + df.columns.tolist(),
+            index=df.columns.tolist().index(column_mapping_template.get(output_col, None)) + 1 if column_mapping_template.get(output_col) in df.columns else 0,
+            key=f"selectbox_{output_col}"  # Unique key for each output column
+        )
 
         # Filter out unmapped columns
         mapped_df = pd.DataFrame()
