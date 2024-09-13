@@ -4,29 +4,26 @@ import json
 import io
 import xml.etree.ElementTree as ET
 
-# Custom CSS for simpler branding
+# Custom CSS for styling
 st.markdown(
     """
     <style>
-    /* Set background to white and header to Mercer blue */
     .stApp {
         background-color: white;
     }
 
-    /* Header styling with a blue background */
     .header-title {
         font-size: 32px;
-        color: white;
-        background-color: #00539b; /* Mercer blue */
+        color: white;  /* White text for header */
+        background-color: #00539b;
         padding: 20px;
         text-align: center;
         margin-bottom: 20px;
     }
 
-    /* Custom button styling */
     .stButton>button {
-        background-color: #00539b; /* Mercer blue */
-        color: white;
+        background-color: #00539b;  /* Blue background */
+        color: white;  /* White text */
         border-radius: 4px;
         border: none;
         padding: 10px;
@@ -34,7 +31,6 @@ st.markdown(
         margin: 10px 0px;
     }
 
-    /* Input box styling */
     .stTextInput>div>div>input {
         background-color: white;
         color: #333333;
@@ -42,12 +38,17 @@ st.markdown(
         padding: 5px;
     }
 
-    /* Center alignment for headers */
     .center-header {
         text-align: center;
         font-size: 20px;
-        color: #333333; /* Dark text for better readability */
+        color: #333333;
         margin: 20px 0;
+    }
+
+    /* Stretch table dynamically to fit the white block */
+    .stDataFrame {
+        max-width: 100%;  /* Allow table to stretch out fully */
+        overflow-x: auto;  /* Allow horizontal scroll if needed */
     }
     </style>
     """,
@@ -58,7 +59,7 @@ st.markdown(
 st.markdown(
     """
     <div class="header-title">
-        <h1>Mercer File Import and Column Mapping Wizard</h1>
+        <h1>Import Wizard</h1>  <!-- Simplified header name -->
     </div>
     """,
     unsafe_allow_html=True
@@ -147,29 +148,37 @@ if uploaded_file is not None:
                 st.write("### Original File Preview")
                 st.dataframe(df.head())  # Display the first few rows of the file
 
-        # Pre-defined output column names
-        output_columns = ["ClientID", "Org.namn", "Orgnr", "Personnr", "AnställningsID", "Efternamn", "Förnamn", "E-postadress", "Utdelningsadress", "Postnr", "c/o-adress", "Land", "Telefonnr", "Mobilnr", "Pensionsmedförande lön", "Datum PMF-lön", "Kontant utbetald bruttolön", "Datum KUB-lön", "Lön/månad", "Alternativ årslön", "Datum alternativ årslön", "Anställningsdatum", "Anst.datum koncern", "Slutdatum anställning", "Avgors", "Frånvarotyp", "Frånvarodatum", "Antal dagar frånvaro", "Sjukkod", "Sjukdatum", "Sjuk antal dagar", "Tjänstepensionskod", "Anställningsgrad", "Enhetsnummer", "Kostnadsställe", "Anställningstyp", "Kategori", "Mpremie", "Arbetsoförmåga", "Frånvarodatum"]
+        # Dropdown to select desired format
+        file_format = st.selectbox("Select the desired output format", ["Personalfil 2.0", "Personalfil 1.9"])
+
+        # Pre-defined output column names for each format
+        output_columns = {
+            "Personalfil 2.0": ["ClientID", "Org.namn", "Orgnr", "Personnr", "AnställningsID", "Efternamn", "Förnamn", "E-postadress", "Utdelningsadress", "Postnr", "c/o-adress", "Land", "Telefonnr", "Mobilnr", "Pensionsmedförande lön", "Datum PMF-lön", "Kontant utbetald bruttolön", "Datum KUB-lön", "Lön/månad", "Alternativ årslön", "Datum alternativ årslön", "Anställningsdatum", "Anst.datum koncern", "Slutdatum anställning", "Avgors", "Frånvarotyp", "Frånvarodatum", "Antal dagar frånvaro", "Sjukkod", "Sjukdatum", "Sjuk antal dagar", "Tjänstepensionskod", "Anställningsgrad", "Enhetsnummer", "Kostnadsställe", "Anställningstyp", "Kategori", "Mpremie", "Arbetsoförmåga", "Frånvarodatum_2"],
+            "Personalfil 1.9": ["Org.namn", "Orgnr", "Personnr", "AnställningsID", "Efternamn", "Förnamn", "E-postadress", "Utdelningsadress", "Postnr", "Postort", "Telefonnr", "Mobilnr", "Pensionsmedförande lön", "Datum PMF-lön", "Kontant utbetald bruttolön", "Datum KUB-lön", "Alternativ årslön", "Datum alternativ årslön", "Anställningsdatum", "Slutdatum anställning", "Frånvarotyp", "Frånvarodatum", "Tjänstepensionskod", "Anställningsgrad", "Enhetsnummer", "Kostnadsställe", "Anställningstyp"]
+        }
+
+        selected_columns = output_columns[file_format]  # Select columns based on user choice
         mapped_columns = {}
 
-        # Center the "Map Columns to Desired Format" header
-        st.markdown("<div class='center-header'>Map Columns to Desired Format</div>", unsafe_allow_html=True)
+        # Center the header for mapping
+        st.markdown("<div class='center-header'>Map Columns to Personalfil 1.9 or 2.0</div>", unsafe_allow_html=True)
 
         # Dynamic layout for mapping columns
         col_mapping_layout = st.columns(2)
-        total_columns = len(output_columns)
+        total_columns = len(selected_columns)
 
-# Create select boxes dynamically
-for i, output_col in enumerate(output_columns):
-    column_number = i % 10
-    col = col_mapping_layout[column_number // 5]  # Dynamically choose left or right side to avoid scrolling
-    with col:
-        # Assign a unique key for each select box
-        mapped_columns[output_col] = st.selectbox(
-            f"Map to '{output_col}'",
-            options=[None] + df.columns.tolist(),
-            index=df.columns.tolist().index(column_mapping_template.get(output_col, None)) + 1 if column_mapping_template.get(output_col) in df.columns else 0,
-            key=f"selectbox_{output_col}"  # Unique key for each output column
-        )
+        # Create select boxes dynamically
+        for i, output_col in enumerate(selected_columns):
+            column_number = i % 10
+            col = col_mapping_layout[column_number // 5]  # Dynamically choose left or right side to avoid scrolling
+            with col:
+                # Assign a unique key for each select box
+                mapped_columns[output_col] = st.selectbox(
+                    f"Map to '{output_col}'",
+                    options=[None] + df.columns.tolist(),
+                    index=df.columns.tolist().index(column_mapping_template.get(output_col, None)) + 1 if column_mapping_template.get(output_col) in df.columns else 0,
+                    key=f"selectbox_{output_col}_{i}"  # Ensure unique key by appending index
+                )
 
         # Filter out unmapped columns
         mapped_df = pd.DataFrame()
@@ -197,15 +206,15 @@ for i, output_col in enumerate(output_columns):
                     file_name=template_name,
                     mime="application/json"
                 )
-                st.success(f"Template saved as {template_name}")
+                st.success("Template saved successfully.")
 
-        # Step 4: Convert and Download as Excel
+        # Generate Downloadable Excel file
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
             mapped_df.to_excel(writer, index=False, sheet_name='MappedData')
         output.seek(0)
 
-        # Step 5: Provide Download Link
+        # Provide a download link for the mapped file
         st.download_button(
             label="Download Mapped File as Excel",
             data=output,
